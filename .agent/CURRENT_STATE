@@ -1,0 +1,1 @@
+DAY 0：已取得 dsh-auth-gate@0.7.2 npm tarball 并完成静态源码审计；DSH latest 已确认 rc.7，现有 PoC 3 项回归通过。rc.6→rc.7 兼容性、git commit、Linux/Caddy E2E 仍未验证；WSL/Docker 当前不可用。下一步需在可访问 Linux 环境执行方案 A。

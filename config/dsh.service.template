@@ -1,0 +1,23 @@
+[Unit]
+Description=DeepSeek Harness web profile
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dsh
+Group=dsh
+EnvironmentFile=-/etc/dsh-server-remote/dsh.env
+WorkingDirectory=/var/lib/dsh
+ExecStart=/usr/bin/dsh --profile web
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+# Add project paths explicitly if the deployment requires write access.
+ReadWritePaths=/var/lib/dsh
+
+[Install]
+WantedBy=multi-user.target

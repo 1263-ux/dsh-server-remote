@@ -1,0 +1,16 @@
+node_modules/
+
+# Local credentials and TLS material
+.agent/*.pfx
+.agent/*.pem
+.agent/day0/*.tgz
+.agent/day0/package/
+
+# Browser/debug artifacts
+.agent/*-dump.html
+.agent/*.log
+
+# Local runtime state
+.env
+.env.*
+.DS_Store

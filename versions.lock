@@ -1,0 +1,62 @@
+# Day 0 version lock
+# Values marked UNKNOWN are intentionally not guessed. Replace only from
+# a directly inspected repository/package manifest and record the source in EVIDENCE.md.
+
+project:
+  name: dsh-server-remote
+  status: day-0-evidence-freeze
+
+dsh:
+  repo: https://github.com/deepseek-ai/deepseek-harness
+  package: @deepseek-ai/dsh
+  version: 0.1.0-rc.7 (npm registry metadata)
+  commit: UNKNOWN
+  license: MIT (npm registry metadata)
+  target_note: Local PoC used a prior running checkout; Linux production target is now pinned to rc.7 for compatibility testing.
+
+auth:
+  repo: https://github.com/TecFancy/dsh-auth-gate (verified from npm package manifest)
+  package: dsh-auth-gate
+  version: 0.7.2
+  commit: UNKNOWN
+  npm_shasum: 236debdc73c23138f9e28781e054095bd0e99278
+  npm_integrity: sha512-g2x+90ldjEMC5R7Zj9upqpHfjxyUQ66KMueg6cpBkVXdTRkyHmCPTSgJstE4P6H+wCkNABgesf9y/NiGdCU1FA==
+  license: MIT (verified from package manifest and included LICENSE)
+  node_engine: ">=22.19.0"
+  tested_dsh_line: 0.1.0-rc.6 (package dependencies/devDependencies)
+  target_dsh: 0.1.0-rc.7 (compatibility E2E still required)
+  status: source-audited-preferred-candidate-not-e2e-verified
+
+caddy:
+  version: UNKNOWN
+  commit: N/A
+  license: Apache-2.0 (expected; verify from selected binary/release)
+  status: pin before deployment
+
+node:
+  minimum: ">=22.19.0" # auth package manifest requirement
+  local_observed: 24.13.0
+  production_version: UNKNOWN
+  commit: N/A
+  license: N/A
+  status: select exact Linux runtime version; do not infer from local Windows Node
+
+linux:
+  distribution: UNKNOWN
+  release: UNKNOWN
+  architecture: UNKNOWN
+  status: select and record one supported VPS baseline before Day 1
+
+reference_candidates:
+  dsh_plugin_remote:
+    repo: https://github.com/siberiah2o/dsh-plugin-remote
+    status: fallback-only-not-verified
+  dsh_full_remote:
+    repo: https://github.com/JUANWANG-BUAA/dsh-full-remote
+    status: security-reference-only-not-verified
+  dsh_container:
+    repo: https://github.com/NIyueeE/dsh-container
+    status: deployment-reference-only-not-verified
+  dsh_testkit:
+    repo: https://github.com/iiwish/dsh-testkit
+    status: test-reference-only-not-verified

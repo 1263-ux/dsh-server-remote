@@ -1,0 +1,14 @@
+{{DOMAIN}} {
+    encode zstd gzip
+
+    reverse_proxy 127.0.0.1:3080 {
+        header_up Host 127.0.0.1:3080
+        @hasOrigin header Origin *
+        header_up @hasOrigin Origin http://127.0.0.1:3080
+    }
+
+    log {
+        output file /var/log/caddy/dsh-server-remote.json
+        format json
+    }
+}

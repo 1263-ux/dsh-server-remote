@@ -1,0 +1,8 @@
+# Copy to $DSH_HOME/cordis.patch.yml after installing dsh-auth-gate.
+# The package's dsh.bundle manifest supplies the mount row.
+- id: dsh-auth-gate
+  config:
+    mode: password
+    cookieSecure: true
+    sessionTtl: 604800
+    usersFile: /var/lib/dsh/.dsh/auth/users.yaml
