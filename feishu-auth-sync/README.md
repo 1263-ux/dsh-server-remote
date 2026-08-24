@@ -29,12 +29,14 @@ DSH_ALLOW_EMPTY_REMOTE=false
 
 如果交付对象使用飞书国际站或兼容 API，可通过 `FEISHU_API_BASE_URL` 切换 API 根地址；生产环境必须使用 HTTPS。
 
+字段名也可以通过 `FEISHU_FIELD_USERNAME`、`FEISHU_FIELD_PASSWORD_HASH`、`FEISHU_FIELD_ENABLED` 修改；接口契约仍是 Feishu/Lark 同构的 tenant token + Bitable records API。
+
 ## 生成密码哈希
 
 多维表只保存哈希，不保存明文密码。服务器上可执行：
 
 ```bash
-printf '%s\n' '用户密码' | node /opt/dsh-feishu-auth-sync/src/cli.js hash-password
+read -rsp 'Password: ' PASSWORD; printf '\n'; printf '%s\n' "$PASSWORD" | node /opt/dsh-feishu-auth-sync/src/cli.js hash-password; unset PASSWORD
 ```
 
 将输出结果填入“密码哈希”字段。该命令使用与 `dsh-auth-gate` 相同的 scrypt 参数和格式。

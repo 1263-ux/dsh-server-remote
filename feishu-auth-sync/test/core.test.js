@@ -26,6 +26,16 @@ test("rejects empty, duplicate, malformed, and unsafe records", () => {
   assert.throws(() => normalizeRecords([
     { record_id: "a", fields: { 账号: "alice", 密码哈希: "plaintext", 启用: true } },
   ], fields), /invalid password hash/);
+  assert.throws(() => normalizeRecords([
+    { record_id: "a", fields: { 账号: "alice", 密码哈希: validHash } },
+  ], fields), /missing enabled field/);
+  assert.equal(normalizeRecords([
+    { record_id: "a", fields: { 账号: "alice", 密码哈希: validHash, 启用: false } },
+  ], fields).users.get("alice").disabled, true);
+});
+
+test("rejects non-power-of-two scrypt cost parameters", () => {
+  assert.throws(() => parseUsersYaml(`version: 1\nusers:\n  alice:\n    passwordHash: scrypt$3$8$1$enp6enp6enp6enp6enp6eg$qhquFN2piwx7cxC6jYN4yREJCPln_GQTzBbLmm4bj1k\n`), /invalid password hash/);
 });
 
 test("preserves local break-glass users and rejects collisions", () => {

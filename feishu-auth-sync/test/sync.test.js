@@ -96,3 +96,27 @@ test("switches to local break-glass users after stale threshold", async () => {
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("clears old cache when stale and no local break-glass user exists", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dsh-feishu-sync-"));
+  try {
+    const cfg = config(root);
+    await syncOnce({
+      config: cfg,
+      fetcher: fetchSequence([{ record_id: "rec-a", fields: { 账号: "alice", 密码哈希: validHash, 启用: true } }]),
+      now: 1000,
+      logger: { error() {} },
+    });
+    const failed = await syncOnce({
+      config: cfg,
+      fetcher: async () => { throw new Error("network down"); },
+      now: cfg.maxStaleMs + 1001,
+      logger: { error() {} },
+    });
+    assert.equal(failed.status, "LOCKED_NO_LOCAL");
+    const users = parseUsersYaml(await readFile(cfg.usersFile, "utf8"));
+    assert.equal(users.users.size, 0);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

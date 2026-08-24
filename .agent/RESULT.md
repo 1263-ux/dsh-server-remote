@@ -163,6 +163,8 @@ Status: PORTABLE IMPLEMENTATION VERIFIED / REMOTE INTEGRATION PENDING FEISHU AUT
 - Preserves last-known-good data during short Feishu failures.
 - After the stale threshold, publishes only the root-owned local break-glass users file; without one, new password logins remain denied.
 - Added systemd service/timer templates without real credentials.
+- Added a fresh-agent review gate before trial. The review found stale-cache lock behavior, missing enabled-field validation, invalid scrypt cost acceptance, incomplete Linux permission checks, and missing systemd hardening; these were fixed before remote activation.
+- The actual remote deployment runs as `root` with `DSH_HOME=/root/.dsh`, matching the default sync target; the service template now limits writes to the auth directories and adds systemd hardening.
 - Added portable environment configuration for API base URL, request timeout, page size, and arbitrary Bitable field names.
 - Added `node src/cli.js hash-password` to generate the installed auth-gate-compatible native scrypt format without storing plaintext.
 - Tightened scrypt validation to require the real 16-byte salt and 32-byte derived key lengths used by `dsh-auth-gate`.
@@ -170,12 +172,12 @@ Status: PORTABLE IMPLEMENTATION VERIFIED / REMOTE INTEGRATION PENDING FEISHU AUT
 
 ### Verification
 
-- Syncer-specific tests: 9 passed, 0 failed after the stricter native-hash validation.
+- Root project tests: 14 passed, 0 failed after the fresh-agent fixes.
 - Generated a test hash with the new CLI and confirmed the expected native format; no plaintext was persisted.
 - All syncer and auth-plugin JavaScript files passed `node --check`.
 - CLI rejects missing Feishu configuration.
 - No real Feishu credentials, password hashes, tokens, or account data were added to the repository.
 
-### Blocker for remote integration
+### Remote trial state
 
-The Feishu home page is reachable, but the developer console requires the Owner's browser login. The Owner must authenticate at the Feishu developer console and authorize the enterprise app to read the selected Bitable. App ID, app secret, app token, table ID, and the approved break-glass account procedure must be transferred through a secure server-side channel, never Git or chat. Remote deployment, dry-run, and login acceptance remain pending those inputs.
+Lark CLI user OAuth is valid and the `DSH 登录账号` Base is created. A temporary enabled `team-qa` record exists for controlled trial. The fixed implementation is being redeployed before enabling the timer; real Feishu dry-run and public browser login acceptance remain the next evidence gates.

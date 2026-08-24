@@ -110,6 +110,7 @@ export async function syncOnce({ config, fetcher = fetch, now = Date.now(), logg
       });
       return { status: "LOCKED_LOCAL_ONLY", staleMs, userCount: local.users.size };
     }
+    await publishSnapshot(config.usersFile, { users: new Map() });
     await publishMetadata(config.metadataFile, {
       version: 1,
       status: "LOCKED_NO_LOCAL",

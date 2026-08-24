@@ -14,8 +14,9 @@ function textValue(value) {
 }
 
 function enabledValue(value) {
+  if (value === undefined || value === null || value === "") throw new Error("missing enabled field");
   if (value === true || value === 1) return true;
-  if (value === false || value === 0 || value === undefined || value === null || value === "") return false;
+  if (value === false || value === 0) return false;
   const normalized = String(value).trim().toLowerCase();
   if (["true", "1", "yes", "y", "是", "启用"].includes(normalized)) return true;
   if (["false", "0", "no", "n", "否", "禁用"].includes(normalized)) return false;
@@ -28,7 +29,9 @@ export function isValidScryptHash(value) {
   const n = Number(match[1]);
   const r = Number(match[2]);
   const p = Number(match[3]);
-  if (!(n > 0 && n <= 2 ** 17 && r > 0 && r <= 32 && p > 0 && p <= 4)) return false;
+  if (!(Number.isInteger(n) && n > 1 && n <= 2 ** 17 && (n & (n - 1)) === 0
+    && Number.isInteger(r) && r > 0 && r <= 32
+    && Number.isInteger(p) && p > 0 && p <= 4)) return false;
   try {
     return Buffer.from(match[4], "base64url").length === 16 && Buffer.from(match[5], "base64url").length === 32;
   } catch {
@@ -62,6 +65,11 @@ export function parseUsersYaml(text, source = "users file") {
 
 export async function readUsersFile(filePath) {
   try {
+    const file = await fs.lstat(filePath);
+    if (!file.isFile() || file.isSymbolicLink()) throw new Error(`${filePath}: must be a regular file`);
+    if (process.platform !== "win32" && (file.mode & 0o077) !== 0) {
+      throw new Error(`${filePath}: permissions must not allow group/other access`);
+    }
     return parseUsersYaml(await fs.readFile(filePath, "utf8"), filePath);
   } catch (error) {
     if (error?.code === "ENOENT") return { users: new Map(), missing: true };
@@ -84,7 +92,7 @@ export function normalizeRecords(records, fields) {
       passwordHash,
       ...(!enabled ? { disabled: true } : {}),
     });
-    recordIds.push(`${record?.record_id ?? ""}:${username}:${enabled ? "enabled" : "disabled"}`);
+    recordIds.push(`${record?.record_id ?? ""}:${username}:${enabled ? "enabled" : "disabled"}:${passwordHash}`);
   }
   const sourceRevision = createHash("sha256").update(recordIds.sort().join("\n")).digest("hex");
   return { users, sourceRevision };
@@ -120,6 +128,16 @@ async function fsyncDirectory(directory) {
 export async function atomicWrite(filePath, contents) {
   const directory = path.dirname(filePath);
   await fs.mkdir(directory, { recursive: true, mode: 0o700 });
+  const directoryStat = await fs.stat(directory);
+  if (!directoryStat.isDirectory() || (process.platform !== "win32" && (directoryStat.mode & 0o077) !== 0)) {
+    throw new Error(`${directory}: directory permissions must be 0700 or stricter`);
+  }
+  try {
+    const existing = await fs.lstat(filePath);
+    if (!existing.isFile() || existing.isSymbolicLink()) throw new Error(`${filePath}: must be a regular file`);
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw error;
+  }
   const temporary = `${filePath}.tmp-${process.pid}`;
   const handle = await fs.open(temporary, "w", 0o600);
   try {
