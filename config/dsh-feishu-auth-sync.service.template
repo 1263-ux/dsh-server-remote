@@ -1,0 +1,13 @@
+[Unit]
+Description=Sync DSH login accounts from Feishu Bitable
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+UMask=0077
+EnvironmentFile=/etc/dsh-auth/feishu-auth.env
+WorkingDirectory=/opt/dsh-feishu-auth-sync
+ExecStart=/usr/bin/node /opt/dsh-feishu-auth-sync/src/cli.js
