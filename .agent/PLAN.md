@@ -66,18 +66,21 @@ A V1 release is GO only when all ten items pass; otherwise record the blocker an
 
 Use one Feishu Bitable table as the administrator-maintained login directory for DSH. The scope is only login allow/deny; it does not attempt per-user Linux, DSH, model, or OKS permissions.
 
-### Proposed design
+### Confirmed design
 
 - Keep `dsh-auth-gate` as the browser-facing login/session layer.
-- Add a small server-side account adapter that reads one configured Bitable table through a Feishu enterprise app and `tenant_access_token`.
-- Cache the normalized account list locally for 60 seconds to avoid a Feishu API call on every password attempt or page/API request.
-- Store only `username`, `password_hash`, `enabled`, `display_name`, and optional `note` fields. Never store plaintext passwords in Feishu.
-- Verify passwords locally with Argon2id or bcrypt; issue the existing Secure/HttpOnly session cookie after success.
-- On sync failure, keep the last known cache for a short bounded grace period, then fail closed for new logins. Existing sessions are not forcibly revoked until a later explicit revocation mechanism is added.
+- Add a small server-side account sync process that reads one configured Bitable table through a Feishu enterprise app and `tenant_access_token`.
+- Publish the native `dsh-auth-gate` `/root/.dsh/auth/users.yaml` format; the installed gate uses scrypt hashes and reloads this file on every password login, so no DSH or plugin modification is needed.
+- Sync every 60 seconds through a systemd timer; never call Feishu from DSH API or WebSocket request paths.
+- Store only `账号`, `密码哈希`, `启用`, `显示名`, and optional `备注` fields. Never store plaintext passwords in Feishu.
+- Preserve a separate root-only local users file for a break-glass account and merge it into the published native users file. Local/remote username collisions fail closed.
+- Validate, normalize, reject empty/duplicate/invalid snapshots, write metadata, fsync, chmod 0600, and atomically replace the users file.
+- Keep last-known-good data while sync age is within 10 minutes. After that, publish only the local break-glass users; if none exist, new password logins remain denied.
+- Existing sessions are not forcibly revoked; account state controls new authentication only.
 
 ### Minimal Bitable fields
 
-`账号` · `密码哈希` · `启用` · `显示名` · `备注`
+`账号` · `密码哈希（dsh-auth-gate 原生 scrypt 格式）` · `启用` · `显示名` · `备注`
 
 ### Non-goals
 
@@ -85,6 +88,7 @@ Use one Feishu Bitable table as the administrator-maintained login directory for
 - No per-user DSH capability or Linux UID mapping.
 - No role matrix, approval workflow, audit database, or permission inheritance.
 - No Feishu API call on every DSH API/WebSocket event.
+- No custom password algorithm conversion; use the installed auth-gate verifier format.
 
 ### Acceptance
 
@@ -93,8 +97,20 @@ Use one Feishu Bitable table as the administrator-maintained login directory for
 3. Existing DSH API/WebSocket authentication behavior remains unchanged.
 4. Feishu app credentials are root-owned and never exposed to the browser or Agent prompt.
 5. Plaintext passwords never appear in the table, logs, result artifacts, or error messages.
-6. If Feishu is unavailable, the service exposes a clear health status and does not silently allow unknown accounts.
+6. If Feishu is unavailable, the service exposes a clear health status, preserves last-known-good data temporarily, and never silently allows unknown accounts.
+7. A malformed, duplicate, empty, or invalid-hash remote snapshot never destroys a valid cache.
+8. A local break-glass account can recover login after the stale threshold without depending on Feishu.
 
 ### Owner gate before implementation
 
-The Owner must provide or approve the Feishu enterprise app, Bitable app token, table ID, and the exact administrator workflow for generating password hashes. Implementation should not begin until those values are supplied through a secure channel; they must not be pasted into source files or chat.
+The Owner must provide or approve the Feishu enterprise app, Bitable app token, table ID, and the exact administrator workflow for generating native scrypt password hashes. Implementation of the remote connection must not begin until those values are supplied through a secure channel; they must not be pasted into source files or chat.
+
+### Confirmed auth-gate facts (2026-08-24)
+
+- Package: `dsh-auth-gate@0.7.2`.
+- Default users file: `${DSH_HOME}/auth/users.yaml`, currently `/root/.dsh/auth/users.yaml`.
+- Schema: `version: 1`, `users.<username>.passwordHash`, optional `disabled`.
+- Password verifier: native scrypt format `scrypt$N$r$p$salt$hash`.
+- Login path reloads the users file on each password attempt; changes do not require a DSH restart.
+- Existing Session validation reads the session table and does not re-check the users file; disabling affects new logins only.
+- The implementation lives in `feishu-auth-sync/`; remote deployment is pending the Owner's Feishu app/table parameters and break-glass account setup.

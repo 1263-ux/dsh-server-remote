@@ -141,3 +141,37 @@ Status: FIXED / REMOTE ACCEPTANCE PASSED
 - All authenticated accounts still share one root DSH process, Linux authority, workspace, session history, model credentials, and OKS knowledge base. The new authenticated settings path intentionally lets team members use the shared model/OKS configuration; it is not RBAC or tenant isolation.
 - `dsh-auth-gate` accounts are independent login identities, but the current deployment does not provide per-user filesystem permissions, approval policy, audit trail, or concurrent-operation locking. This remains the main production hardening item for a larger team.
 - The existing OKS linter warning for `wiki/oks-concepts.md` (`status: published`) remains unchanged because it is source-data compatibility, not a deployment failure.
+
+## Feishu Login Directory / dsh-feishu-auth-sync (2026-08-24)
+
+Status: LOCAL IMPLEMENTATION READY / REMOTE INTEGRATION PENDING OWNER INPUT
+
+### Confirmed auth-gate facts
+
+- Remote `dsh-auth-gate@0.7.2` uses `/root/.dsh/auth/users.yaml` by default.
+- The native schema is `version: 1` with `users.<username>.passwordHash` and optional `disabled`.
+- The native password format is scrypt, not Argon2 or bcrypt.
+- Password login reloads the users file for each attempt, so a successful sync does not require restarting DSH.
+- Existing sessions validate against the session store and do not re-read the users file; disabling an account affects new logins only.
+
+### Local implementation
+
+- Added `feishu-auth-sync/`, a standalone Fetch/Validate/Normalize/Publish adapter.
+- Reads Feishu Bitable records through the server-side tenant token flow.
+- Publishes the native auth-gate users YAML with atomic replacement, fsync, mode 0600, and metadata.
+- Rejects invalid usernames, invalid native scrypt hashes, duplicate records, empty remote snapshots, and local/remote username collisions.
+- Preserves last-known-good data during short Feishu failures.
+- After the stale threshold, publishes only the root-owned local break-glass users file; without one, new password logins remain denied.
+- Added systemd service/timer templates without real credentials.
+
+### Verification
+
+- Root project and syncer tests: 10 passed, 0 failed.
+- Syncer-specific tests: 7 passed, 0 failed.
+- All syncer and auth-plugin JavaScript files passed `node --check`.
+- CLI rejects missing Feishu configuration.
+- No real Feishu credentials, password hashes, tokens, or account data were added to the repository.
+
+### Blocker for remote integration
+
+The Owner must provide the Feishu enterprise app and Bitable identifiers through a secure server-side channel: app ID, app secret, app token, table ID, and the approved break-glass account procedure. They must not be pasted into Git or chat. Remote deployment, dry-run, and login acceptance remain pending those inputs.

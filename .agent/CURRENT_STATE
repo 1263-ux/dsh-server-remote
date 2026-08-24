@@ -1,1 +1,1 @@
-2026-08-24：进入“团队账号来源简化”设计阶段。目标是只控制谁可以登录，不引入复杂 RBAC。已完成飞书多维表格官方接口研究：服务器可用企业自建应用的 tenant_access_token 读取账号记录；下一步是确定字段、短缓存和 dsh-auth-gate 接入方式。当前不改线上账号、不写入任何真实飞书凭据。
+2026-08-24：Owner 已批准带条件进入 IMPLEMENT。已核验远端 dsh-auth-gate@0.7.2：原生 users.yaml、scrypt 哈希、每次登录重读文件、Session 不重读用户。已完成 feishu-auth-sync 第一轮本地实现和 7 项测试；下一步是做安全审查、补齐部署/健康检查，再等待 Feishu app/table 参数后进行远端 dry-run。真实飞书凭据尚未接入。
