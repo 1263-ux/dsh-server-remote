@@ -6,7 +6,7 @@ import path from "node:path";
 import { parseUsersYaml, serializeUsersYaml, readMetadata, readUsersFile } from "../src/core.js";
 import { syncOnce } from "../src/sync.js";
 
-const validHash = "scrypt$65536$8$1$enp6enp6enp6enp6eg$qhquFN2piwx7cxC6jYN4yREJCPln_GQTzBbLmm4bj1k";
+const validHash = "scrypt$65536$8$1$enp6enp6enp6enp6enp6eg$qhquFN2piwx7cxC6jYN4yREJCPln_GQTzBbLmm4bj1k";
 
 function config(root) {
   return {
@@ -14,6 +14,9 @@ function config(root) {
     appSecret: "secret-not-logged",
     appToken: "basc_test",
     tableId: "tbl_test",
+    apiBaseUrl: "https://open.feishu.cn",
+    timeoutMs: 15000,
+    pageSize: 500,
     usersFile: path.join(root, "users.yaml"),
     localUsersFile: path.join(root, "users.local.yaml"),
     metadataFile: path.join(root, "users.yaml.meta.json"),

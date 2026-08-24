@@ -10,6 +10,29 @@ import {
 } from "./core.js";
 
 const REQUIRED = ["FEISHU_APP_ID", "FEISHU_APP_SECRET", "FEISHU_BITABLE_APP_TOKEN", "FEISHU_BITABLE_TABLE_ID"];
+const DEFAULT_API_BASE_URL = "https://open.feishu.cn";
+
+function positiveInteger(value, name, fallback, maximum = Number.MAX_SAFE_INTEGER) {
+  const result = Number(value ?? fallback);
+  if (!Number.isInteger(result) || result <= 0 || result > maximum) {
+    throw new Error(`${name} must be a positive integer <= ${maximum}`);
+  }
+  return result;
+}
+
+function apiBaseUrl(value) {
+  let url;
+  try {
+    url = new URL(value || DEFAULT_API_BASE_URL);
+  } catch {
+    throw new Error("FEISHU_API_BASE_URL must be a valid URL");
+  }
+  const localDevelopment = ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
+  if (url.protocol !== "https:" && !(localDevelopment && url.protocol === "http:")) {
+    throw new Error("FEISHU_API_BASE_URL must use HTTPS (HTTP is allowed only for localhost)");
+  }
+  return url.toString().replace(/\/$/, "");
+}
 
 export function configFromEnv(env = process.env) {
   for (const name of REQUIRED) {
@@ -24,6 +47,9 @@ export function configFromEnv(env = process.env) {
     appSecret: env.FEISHU_APP_SECRET,
     appToken: env.FEISHU_BITABLE_APP_TOKEN,
     tableId: env.FEISHU_BITABLE_TABLE_ID,
+    apiBaseUrl: apiBaseUrl(env.FEISHU_API_BASE_URL),
+    timeoutMs: positiveInteger(env.FEISHU_REQUEST_TIMEOUT_MS, "FEISHU_REQUEST_TIMEOUT_MS", 15000, 120000),
+    pageSize: positiveInteger(env.FEISHU_PAGE_SIZE, "FEISHU_PAGE_SIZE", 500, 500),
     usersFile: env.DSH_USERS_FILE || "/root/.dsh/auth/users.yaml",
     localUsersFile: env.DSH_LOCAL_USERS_FILE || "/etc/dsh-auth/users.local.yaml",
     metadataFile: env.DSH_USERS_METADATA_FILE || `${env.DSH_USERS_FILE || "/root/.dsh/auth/users.yaml"}.meta.json`,
@@ -46,7 +72,7 @@ export async function syncOnce({ config, fetcher = fetch, now = Date.now(), logg
       throw new Error("Feishu returned zero users; refusing to replace last known good cache");
     }
     const merged = mergeSnapshots(remote, local);
-    if (merged.users.size === 0) throw new Error("merged user set is empty");
+    if (merged.users.size === 0 && !config.allowEmptyRemote) throw new Error("merged user set is empty");
     await publishSnapshot(config.usersFile, merged);
     await publishMetadata(config.metadataFile, {
       version: 1,

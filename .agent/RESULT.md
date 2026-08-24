@@ -144,7 +144,7 @@ Status: FIXED / REMOTE ACCEPTANCE PASSED
 
 ## Feishu Login Directory / dsh-feishu-auth-sync (2026-08-24)
 
-Status: LOCAL IMPLEMENTATION READY / REMOTE INTEGRATION PENDING OWNER INPUT
+Status: PORTABLE IMPLEMENTATION VERIFIED / REMOTE INTEGRATION PENDING FEISHU AUTHORIZATION
 
 ### Confirmed auth-gate facts
 
@@ -163,15 +163,19 @@ Status: LOCAL IMPLEMENTATION READY / REMOTE INTEGRATION PENDING OWNER INPUT
 - Preserves last-known-good data during short Feishu failures.
 - After the stale threshold, publishes only the root-owned local break-glass users file; without one, new password logins remain denied.
 - Added systemd service/timer templates without real credentials.
+- Added portable environment configuration for API base URL, request timeout, page size, and arbitrary Bitable field names.
+- Added `node src/cli.js hash-password` to generate the installed auth-gate-compatible native scrypt format without storing plaintext.
+- Tightened scrypt validation to require the real 16-byte salt and 32-byte derived key lengths used by `dsh-auth-gate`.
+- Added a no-secret environment template at `config/dsh-feishu-auth.env.example`.
 
 ### Verification
 
-- Root project and syncer tests: 10 passed, 0 failed.
-- Syncer-specific tests: 7 passed, 0 failed.
+- Syncer-specific tests: 9 passed, 0 failed after the stricter native-hash validation.
+- Generated a test hash with the new CLI and confirmed the expected native format; no plaintext was persisted.
 - All syncer and auth-plugin JavaScript files passed `node --check`.
 - CLI rejects missing Feishu configuration.
 - No real Feishu credentials, password hashes, tokens, or account data were added to the repository.
 
 ### Blocker for remote integration
 
-The Owner must provide the Feishu enterprise app and Bitable identifiers through a secure server-side channel: app ID, app secret, app token, table ID, and the approved break-glass account procedure. They must not be pasted into Git or chat. Remote deployment, dry-run, and login acceptance remain pending those inputs.
+The Feishu home page is reachable, but the developer console requires the Owner's browser login. The Owner must authenticate at the Feishu developer console and authorize the enterprise app to read the selected Bitable. App ID, app secret, app token, table ID, and the approved break-glass account procedure must be transferred through a secure server-side channel, never Git or chat. Remote deployment, dry-run, and login acceptance remain pending those inputs.

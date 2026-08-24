@@ -28,7 +28,12 @@ export function isValidScryptHash(value) {
   const n = Number(match[1]);
   const r = Number(match[2]);
   const p = Number(match[3]);
-  return n > 0 && n <= 2 ** 17 && r > 0 && r <= 32 && p > 0 && p <= 4;
+  if (!(n > 0 && n <= 2 ** 17 && r > 0 && r <= 32 && p > 0 && p <= 4)) return false;
+  try {
+    return Buffer.from(match[4], "base64url").length === 16 && Buffer.from(match[5], "base64url").length === 32;
+  } catch {
+    return false;
+  }
 }
 
 export function parseUsersYaml(text, source = "users file") {

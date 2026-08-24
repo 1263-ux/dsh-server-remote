@@ -101,9 +101,9 @@ Use one Feishu Bitable table as the administrator-maintained login directory for
 7. A malformed, duplicate, empty, or invalid-hash remote snapshot never destroys a valid cache.
 8. A local break-glass account can recover login after the stale threshold without depending on Feishu.
 
-### Owner gate before implementation
+### Owner gate before remote trial
 
-The Owner must provide or approve the Feishu enterprise app, Bitable app token, table ID, and the exact administrator workflow for generating native scrypt password hashes. Implementation of the remote connection must not begin until those values are supplied through a secure channel; they must not be pasted into source files or chat.
+The Owner approved using their Feishu account for testing. Before remote trial, the Owner must sign in to the Feishu developer console and authorize the enterprise app to read the selected Bitable. App ID, app secret, app token, table ID, and the exact administrator workflow for generating native scrypt password hashes must be supplied through a secure server-side channel; they must not be pasted into source files or chat.
 
 ### Confirmed auth-gate facts (2026-08-24)
 
@@ -114,3 +114,11 @@ The Owner must provide or approve the Feishu enterprise app, Bitable app token, 
 - Login path reloads the users file on each password attempt; changes do not require a DSH restart.
 - Existing Session validation reads the session table and does not re-check the users file; disabling affects new logins only.
 - The implementation lives in `feishu-auth-sync/`; remote deployment is pending the Owner's Feishu app/table parameters and break-glass account setup.
+
+### Portable implementation update (2026-08-24)
+
+- `FEISHU_API_BASE_URL`, request timeout, page size, and all three Bitable field names are configurable; production endpoints must use HTTPS.
+- `node src/cli.js hash-password` generates the native `dsh-auth-gate` scrypt format for administrator workflows.
+- Native hash validation checks the real salt/key lengths, preventing an apparently well-formed but unusable row from being published.
+- The no-secret template is `config/dsh-feishu-auth.env.example`; no credentials have been committed.
+- Local test status: 12 root tests passed, including 9 syncer tests; remote Feishu trial is pending browser login and app/table authorization.

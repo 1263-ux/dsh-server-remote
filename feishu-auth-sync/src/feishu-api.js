@@ -1,21 +1,21 @@
-export async function fetchFeishuRecords({ appId, appSecret, appToken, tableId, fields, fetcher = fetch }) {
-  const tokenResponse = await requestJson(fetcher, "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal", {
+export async function fetchFeishuRecords({ appId, appSecret, appToken, tableId, apiBaseUrl = "https://open.feishu.cn", timeoutMs = 15000, pageSize = 500, fetcher = fetch }) {
+  const tokenResponse = await requestJson(fetcher, `${apiBaseUrl}/open-apis/auth/v3/tenant_access_token/internal`, {
     method: "POST",
     headers: { "content-type": "application/json; charset=utf-8" },
     body: JSON.stringify({ app_id: appId, app_secret: appSecret }),
-  });
+  }, timeoutMs);
   const token = tokenResponse.tenant_access_token;
   if (typeof token !== "string" || token === "") throw new Error("Feishu token response missing token");
 
   const records = [];
   let pageToken;
   for (let page = 0; page < 100; page += 1) {
-    const url = new URL(`https://open.feishu.cn/open-apis/bitable/v1/apps/${encodeURIComponent(appToken)}/tables/${encodeURIComponent(tableId)}/records`);
-    url.searchParams.set("page_size", "500");
+    const url = new URL(`${apiBaseUrl}/open-apis/bitable/v1/apps/${encodeURIComponent(appToken)}/tables/${encodeURIComponent(tableId)}/records`);
+    url.searchParams.set("page_size", String(pageSize));
     if (pageToken) url.searchParams.set("page_token", pageToken);
     const response = await requestJson(fetcher, url, {
       headers: { authorization: `Bearer ${token}` },
-    });
+    }, timeoutMs);
     const data = response.data ?? {};
     records.push(...(Array.isArray(data.items) ? data.items : []));
     if (!data.has_more) return { records };
@@ -25,8 +25,11 @@ export async function fetchFeishuRecords({ appId, appSecret, appToken, tableId, 
   throw new Error("Feishu record pagination exceeded safety limit");
 }
 
-async function requestJson(fetcher, url, options) {
-  const response = await fetcher(url, options);
+async function requestJson(fetcher, url, options, timeoutMs) {
+  const response = await fetcher(url, {
+    ...options,
+    signal: AbortSignal.timeout(timeoutMs),
+  });
   let body;
   try {
     body = await response.json();

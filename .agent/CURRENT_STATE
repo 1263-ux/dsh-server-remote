@@ -1,1 +1,1 @@
-2026-08-24：Owner 已批准带条件进入 IMPLEMENT。已核验远端 dsh-auth-gate@0.7.2：原生 users.yaml、scrypt 哈希、每次登录重读文件、Session 不重读用户。已完成 feishu-auth-sync 第一轮本地实现和 7 项测试；下一步是做安全审查、补齐部署/健康检查，再等待 Feishu app/table 参数后进行远端 dry-run。真实飞书凭据尚未接入。
+2026-08-24：Owner 已批准进入 Feishu 账号同步试运行。已核验远端 dsh-auth-gate@0.7.2：原生 users.yaml、scrypt 哈希、每次登录重读文件、Session 不重读用户。已完成 feishu-auth-sync 通用化改造：API 根地址、超时、分页、字段映射可配置，并提供原生 scrypt 哈希生成命令；专项测试 9/9 通过。Lark CLI 用户 OAuth 已刷新并具备 Base 读取权限。只读盘点未发现现成 DSH 账号表；新建“DSH 登录账号”Base 的 dry-run 已完成，等待 Owner 对真实创建动作确认。
