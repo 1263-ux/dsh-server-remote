@@ -37,7 +37,8 @@ async function requestJson(fetcher, url, options, timeoutMs) {
     throw new Error(`Feishu API returned non-JSON response: HTTP ${response.status}`);
   }
   if (!response.ok || body.code !== 0) {
-    throw new Error(`Feishu API failed: HTTP ${response.status}, code ${body.code ?? "unknown"}`);
+    const message = typeof body.msg === "string" && body.msg.length > 0 ? `, message ${body.msg}` : "";
+    throw new Error(`Feishu API failed: HTTP ${response.status}, code ${body.code ?? "unknown"}${message}`);
   }
   return body;
 }
