@@ -1,4 +1,4 @@
-export async function fetchFeishuRecords({ appId, appSecret, appToken, tableId, apiBaseUrl = "https://open.feishu.cn", timeoutMs = 15000, pageSize = 500, fetcher = fetch }) {
+export async function fetchFeishuRecords({ appId, appSecret, appToken, tableId, apiBaseUrl = "https://open.feishu.cn", timeoutMs = 15000, pageSize = 200, fetcher = fetch }) {
   const tokenResponse = await requestJson(fetcher, `${apiBaseUrl}/open-apis/auth/v3/tenant_access_token/internal`, {
     method: "POST",
     headers: { "content-type": "application/json; charset=utf-8" },
@@ -8,21 +8,35 @@ export async function fetchFeishuRecords({ appId, appSecret, appToken, tableId, 
   if (typeof token !== "string" || token === "") throw new Error("Feishu token response missing token");
 
   const records = [];
-  let pageToken;
+  let offset = 0;
   for (let page = 0; page < 100; page += 1) {
-    const url = new URL(`${apiBaseUrl}/open-apis/bitable/v1/apps/${encodeURIComponent(appToken)}/tables/${encodeURIComponent(tableId)}/records`);
-    url.searchParams.set("page_size", String(pageSize));
-    if (pageToken) url.searchParams.set("page_token", pageToken);
+    const url = new URL(`${apiBaseUrl}/open-apis/base/v3/bases/${encodeURIComponent(appToken)}/tables/${encodeURIComponent(tableId)}/records`);
+    url.searchParams.set("limit", String(pageSize));
+    url.searchParams.set("offset", String(offset));
     const response = await requestJson(fetcher, url, {
       headers: { authorization: `Bearer ${token}` },
     }, timeoutMs);
     const data = response.data ?? {};
-    records.push(...(Array.isArray(data.items) ? data.items : []));
+    if (Array.isArray(data.items)) {
+      records.push(...data.items);
+    } else {
+      records.push(...transposeBaseRecords(data));
+    }
     if (!data.has_more) return { records };
-    if (typeof data.page_token !== "string" || data.page_token === "") throw new Error("Feishu pagination missing page token");
-    pageToken = data.page_token;
+    const pageCount = Array.isArray(data.data) ? data.data.length : 0;
+    if (pageCount === 0) throw new Error("Feishu pagination returned no records while more pages exist");
+    offset += pageCount;
   }
   throw new Error("Feishu record pagination exceeded safety limit");
+}
+
+function transposeBaseRecords(data) {
+  if (!Array.isArray(data.data) || !Array.isArray(data.fields)) return [];
+  const recordIds = Array.isArray(data.record_id_list) ? data.record_id_list : [];
+  return data.data.map((row, index) => ({
+    record_id: recordIds[index],
+    fields: Object.fromEntries(data.fields.map((field, fieldIndex) => [field, row?.[fieldIndex]])),
+  }));
 }
 
 async function requestJson(fetcher, url, options, timeoutMs) {

@@ -53,6 +53,35 @@ test("publishes a valid Feishu snapshot and metadata", async () => {
   }
 });
 
+test("reads the Feishu Base v3 tabular response shape", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dsh-feishu-sync-"));
+  try {
+    let call = 0;
+    const result = await syncOnce({
+      config: config(root),
+      fetcher: async () => {
+        call += 1;
+        if (call === 1) return { ok: true, status: 200, json: async () => ({ code: 0, tenant_access_token: "token-not-logged" }) };
+        return { ok: true, status: 200, json: async () => ({
+          code: 0,
+          data: {
+            data: [["alice", true, "note", "Alice", validHash]],
+            fields: ["账号", "启用", "备注", "显示名", "密码哈希"],
+            record_id_list: ["rec-a"],
+            has_more: false,
+          },
+        }) };
+      },
+      now: 1000,
+      logger: { error() {} },
+    });
+    assert.equal(result.status, "VALID");
+    assert.deepEqual([... (await readUsersFile(path.join(root, "users.yaml"))).users.keys()], ["alice"]);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("keeps the last known good file for a fresh failed sync", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "dsh-feishu-sync-"));
   try {

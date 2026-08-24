@@ -49,7 +49,7 @@ export function configFromEnv(env = process.env) {
     tableId: env.FEISHU_BITABLE_TABLE_ID,
     apiBaseUrl: apiBaseUrl(env.FEISHU_API_BASE_URL),
     timeoutMs: positiveInteger(env.FEISHU_REQUEST_TIMEOUT_MS, "FEISHU_REQUEST_TIMEOUT_MS", 15000, 120000),
-    pageSize: positiveInteger(env.FEISHU_PAGE_SIZE, "FEISHU_PAGE_SIZE", 500, 500),
+    pageSize: positiveInteger(env.FEISHU_PAGE_SIZE, "FEISHU_PAGE_SIZE", 200, 200),
     usersFile: env.DSH_USERS_FILE || "/root/.dsh/auth/users.yaml",
     localUsersFile: env.DSH_LOCAL_USERS_FILE || "/etc/dsh-auth/users.local.yaml",
     metadataFile: env.DSH_USERS_METADATA_FILE || `${env.DSH_USERS_FILE || "/root/.dsh/auth/users.yaml"}.meta.json`,

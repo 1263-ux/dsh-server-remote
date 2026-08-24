@@ -19,7 +19,7 @@ FEISHU_BITABLE_APP_TOKEN=
 FEISHU_BITABLE_TABLE_ID=
 FEISHU_API_BASE_URL=https://open.feishu.cn
 FEISHU_REQUEST_TIMEOUT_MS=15000
-FEISHU_PAGE_SIZE=500
+FEISHU_PAGE_SIZE=200
 DSH_USERS_FILE=/root/.dsh/auth/users.yaml
 DSH_LOCAL_USERS_FILE=/etc/dsh-auth/users.local.yaml
 DSH_MAX_STALE_SECONDS=600
@@ -29,7 +29,7 @@ DSH_ALLOW_EMPTY_REMOTE=false
 
 如果交付对象使用飞书国际站或兼容 API，可通过 `FEISHU_API_BASE_URL` 切换 API 根地址；生产环境必须使用 HTTPS。
 
-字段名也可以通过 `FEISHU_FIELD_USERNAME`、`FEISHU_FIELD_PASSWORD_HASH`、`FEISHU_FIELD_ENABLED` 修改；接口契约仍是 Feishu/Lark 同构的 tenant token + Bitable records API。
+字段名也可以通过 `FEISHU_FIELD_USERNAME`、`FEISHU_FIELD_PASSWORD_HASH`、`FEISHU_FIELD_ENABLED` 修改；接口使用 Feishu/Lark 的 tenant token 和 Base v3 records API（`/open-apis/base/v3/bases/.../tables/.../records`），兼容 Lark CLI 当前使用的新版 Base 接口。
 
 ## 生成密码哈希
 

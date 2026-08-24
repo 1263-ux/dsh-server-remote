@@ -17,7 +17,7 @@
 
 - ✅ **简化架构** - 不需要自定义 Gateway，纯配置驱动
 - ✅ **现代化 UI** - 渐变背景、流畅动画、响应式设计
-- ✅ **企业级安全** - Argon2 哈希、登录限流、IP 锁定
+- ✅ **企业级安全** - scrypt 哈希、登录限流、IP 锁定
 - ✅ **品牌定制** - Logo、颜色、标题完全可定制
 - ✅ **易于部署** - 一键安装，systemd 服务管理
 - ✅ **完整文档** - 详细的部署指南和运维文档
@@ -152,7 +152,7 @@ tool-deepseek/
 | Web Server | Caddy | v2.8+ |
 | Application | DeepSeek Harness | v0.1.0-rc.7+ |
 | Authentication | dsh-remote-auth | v0.1.0 |
-| Password Hash | Argon2 | - |
+| Password Hash | scrypt | - |
 | Session | nanoid | - |
 | Frontend | 纯 HTML/CSS/JS | - |
 
@@ -173,7 +173,7 @@ tool-deepseek/
 | 功能 | dsh-auth-gate | dsh-remote-auth |
 |------|---------------|-----------------|
 | UI 设计 | 基础 | ✨ 现代化 |
-| 密码哈希 | scrypt | ✨ Argon2 |
+| 密码哈希 | scrypt | 与 DSH 原生格式一致 |
 | 品牌定制 | 有限 | ✨ 完全可定制 |
 | 维护性 | 上游依赖 | ✨ 独立维护 |
 
