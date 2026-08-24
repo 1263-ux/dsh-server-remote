@@ -150,8 +150,6 @@ export function apply(ctx, config) {
     });
 
     logger.info?.('Authentication middleware injected successfully');
-  });
-
   // 清理过期 Session（定时任务）
   const cleanupInterval = setInterval(() => {
     sessionManager.cleanupExpiredSessions().catch(err => {
