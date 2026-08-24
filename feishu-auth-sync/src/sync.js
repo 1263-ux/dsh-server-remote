@@ -64,7 +64,12 @@ export function configFromEnv(env = process.env) {
 }
 
 export async function syncOnce({ config, fetcher = fetch, now = Date.now(), logger = console }) {
-  const local = await readUsersFile(config.localUsersFile);
+  let local = { users: new Map() };
+  try {
+    local = await readUsersFile(config.localUsersFile);
+  } catch (error) {
+    logger.error?.(`Feishu auth sync local break-glass file unavailable: ${error instanceof Error ? error.message : String(error)}`);
+  }
   try {
     const result = await fetchFeishuRecords({ ...config, fetcher });
     const remote = normalizeRecords(result.records, config.fields);
@@ -85,7 +90,12 @@ export async function syncOnce({ config, fetcher = fetch, now = Date.now(), logg
     });
     return { status: "VALID", userCount: merged.users.size };
   } catch (error) {
-    const previous = await readMetadata(config.metadataFile);
+    let previous = null;
+    try {
+      previous = await readMetadata(config.metadataFile);
+    } catch (metadataError) {
+      logger.error?.(`Feishu auth sync metadata unavailable: ${metadataError instanceof Error ? metadataError.message : String(metadataError)}`);
+    }
     const lastSuccess = previous?.generated_at ? Date.parse(previous.generated_at) : NaN;
     const staleMs = Number.isFinite(lastSuccess) ? Math.max(0, now - lastSuccess) : Infinity;
     logger.error?.(`Feishu auth sync failed: ${error instanceof Error ? error.message : String(error)}`);

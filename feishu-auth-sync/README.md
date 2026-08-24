@@ -36,7 +36,7 @@ DSH_ALLOW_EMPTY_REMOTE=false
 多维表只保存哈希，不保存明文密码。服务器上可执行：
 
 ```bash
-read -rsp 'Password: ' PASSWORD; printf '\n'; printf '%s\n' "$PASSWORD" | node /opt/dsh-feishu-auth-sync/src/cli.js hash-password; unset PASSWORD
+read -rsp 'Password: ' PASSWORD; printf '\n'; printf '%s\n' "$PASSWORD" | node /opt/dsh-feishu-auth-sync/feishu-auth-sync/src/cli.js hash-password; unset PASSWORD
 ```
 
 将输出结果填入“密码哈希”字段。该命令使用与 `dsh-auth-gate` 相同的 scrypt 参数和格式。

@@ -149,3 +149,27 @@ test("clears old cache when stale and no local break-glass user exists", async (
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("fails closed when stale metadata is malformed", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "dsh-feishu-sync-"));
+  try {
+    const cfg = config(root);
+    await syncOnce({
+      config: cfg,
+      fetcher: fetchSequence([{ record_id: "rec-a", fields: { 账号: "alice", 密码哈希: validHash, 启用: true } }]),
+      now: 1000,
+      logger: { error() {} },
+    });
+    await writeFile(cfg.metadataFile, "not-json");
+    const failed = await syncOnce({
+      config: cfg,
+      fetcher: async () => { throw new Error("network down"); },
+      now: cfg.maxStaleMs + 1001,
+      logger: { error() {} },
+    });
+    assert.equal(failed.status, "LOCKED_NO_LOCAL");
+    assert.equal(parseUsersYaml(await readFile(cfg.usersFile, "utf8")).users.size, 0);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

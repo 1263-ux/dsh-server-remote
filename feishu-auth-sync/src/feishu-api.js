@@ -32,11 +32,15 @@ export async function fetchFeishuRecords({ appId, appSecret, appToken, tableId, 
 
 function transposeBaseRecords(data) {
   if (!Array.isArray(data.data) || !Array.isArray(data.fields)) return [];
+  if (data.data.length > 0 && data.fields.length === 0) throw new Error("Feishu Base response missing field names");
   const recordIds = Array.isArray(data.record_id_list) ? data.record_id_list : [];
-  return data.data.map((row, index) => ({
+  return data.data.map((row, index) => {
+    if (!Array.isArray(row)) throw new Error("Feishu Base response contains a malformed record row");
+    return {
     record_id: recordIds[index],
     fields: Object.fromEntries(data.fields.map((field, fieldIndex) => [field, row?.[fieldIndex]])),
-  }));
+    };
+  });
 }
 
 async function requestJson(fetcher, url, options, timeoutMs) {

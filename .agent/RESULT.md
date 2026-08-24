@@ -144,7 +144,7 @@ Status: FIXED / REMOTE ACCEPTANCE PASSED
 
 ## Feishu Login Directory / dsh-feishu-auth-sync (2026-08-24)
 
-Status: PORTABLE IMPLEMENTATION VERIFIED / REMOTE INTEGRATION PENDING FEISHU AUTHORIZATION
+Status: PORTABLE IMPLEMENTATION VERIFIED / REMOTE INTEGRATION ACCEPTANCE PASSED
 
 ### Confirmed auth-gate facts
 
@@ -157,7 +157,7 @@ Status: PORTABLE IMPLEMENTATION VERIFIED / REMOTE INTEGRATION PENDING FEISHU AUT
 ### Local implementation
 
 - Added `feishu-auth-sync/`, a standalone Fetch/Validate/Normalize/Publish adapter.
-- Reads Feishu Bitable records through the server-side tenant token flow.
+- Reads Feishu Base v3 records through the server-side tenant token flow; this matches the Lark CLI bot path and the granted `base:record:read` application scope.
 - Publishes the native auth-gate users YAML with atomic replacement, fsync, mode 0600, and metadata.
 - Rejects invalid usernames, invalid native scrypt hashes, duplicate records, empty remote snapshots, and local/remote username collisions.
 - Preserves last-known-good data during short Feishu failures.
@@ -165,14 +165,14 @@ Status: PORTABLE IMPLEMENTATION VERIFIED / REMOTE INTEGRATION PENDING FEISHU AUT
 - Added systemd service/timer templates without real credentials.
 - Added a fresh-agent review gate before trial. The review found stale-cache lock behavior, missing enabled-field validation, invalid scrypt cost acceptance, incomplete Linux permission checks, and missing systemd hardening; these were fixed before remote activation.
 - The actual remote deployment runs as `root` with `DSH_HOME=/root/.dsh`, matching the default sync target; the service template now limits writes to the auth directories and adds systemd hardening.
-- Added portable environment configuration for API base URL, request timeout, page size, and arbitrary Bitable field names.
+- Added portable environment configuration for API base URL, request timeout, page size, and arbitrary Base field names.
 - Added `node src/cli.js hash-password` to generate the installed auth-gate-compatible native scrypt format without storing plaintext.
 - Tightened scrypt validation to require the real 16-byte salt and 32-byte derived key lengths used by `dsh-auth-gate`.
 - Added a no-secret environment template at `config/dsh-feishu-auth.env.example`.
 
 ### Verification
 
-- Root project tests: 14 passed, 0 failed after the fresh-agent fixes.
+- Syncer test suite: 12 passed, 0 failed after the Base v3 change and fresh-agent fixes.
 - Generated a test hash with the new CLI and confirmed the expected native format; no plaintext was persisted.
 - All syncer and auth-plugin JavaScript files passed `node --check`.
 - CLI rejects missing Feishu configuration.
@@ -180,4 +180,4 @@ Status: PORTABLE IMPLEMENTATION VERIFIED / REMOTE INTEGRATION PENDING FEISHU AUT
 
 ### Remote trial state
 
-Lark CLI user OAuth is valid and the `DSH 登录账号` Base is created. A temporary enabled `team-qa` record exists for controlled trial. The fixed implementation is being redeployed before enabling the timer; real Feishu dry-run and public browser login acceptance remain the next evidence gates.
+Lark CLI user OAuth is valid and the `DSH 登录账号` Base is created. The real App Secret was recovered from the local Lark CLI keychain and injected into the root-only remote EnvironmentFile without being printed or committed. Remote sync returned `VALID`; the 60-second timer is active; metadata reports one remote user, one local break-glass user, and two merged users. The temporary `team-qa` record returned HTTP 302 and a session while enabled. After setting `启用=false` in Feishu and running another sync, a new login returned HTTP 401. The temporary account remains disabled for safety.
