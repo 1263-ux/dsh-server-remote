@@ -19,5 +19,5 @@ LockPersonality=true
 SystemCallArchitectures=native
 ReadWritePaths=/root/.dsh/auth /etc/dsh-auth
 EnvironmentFile=/etc/dsh-auth/feishu-auth.env
-WorkingDirectory=/opt/dsh-feishu-auth-sync
-ExecStart=/usr/bin/node /opt/dsh-feishu-auth-sync/src/cli.js
+WorkingDirectory=/opt/dsh-feishu-auth-sync/feishu-auth-sync
+ExecStart=/usr/bin/node /opt/dsh-feishu-auth-sync/feishu-auth-sync/src/cli.js
