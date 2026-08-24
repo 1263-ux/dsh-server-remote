@@ -14,3 +14,13 @@ node_modules/
 .env
 .env.*
 .DS_Store
+
+# Browser, screenshot, archive, and local deployment artifacts
+.playwright-mcp/
+*.png
+*.tar.gz
+*.bin
+custom-auth-ui/
+deepseek-harness-wrapper/
+dsh-server-deploy/
+dsh-snapshot.md

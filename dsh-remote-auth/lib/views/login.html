@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - DeepSeek Harness</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #gradient-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        #wave-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 24px;
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+
+        .login-box:hover {
+            transform: translateY(-4px);
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.35);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .logo svg {
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 15px;
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            transition: color 0.2s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            font-size: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid rgba(226, 232, 240, 0.6);
+            border-radius: 12px;
+            color: #0f172a;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: #cbd5e1;
+        }
+
+        input:hover {
+            border-color: rgba(203, 213, 225, 0.8);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input:focus {
+            background: rgba(255, 255, 255, 1);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+        }
+
+        input:focus ~ .input-icon {
+            color: #3b82f6;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            color: #94a3b8;
+            transition: all 0.2s ease;
+            border-radius: 6px;
+            z-index: 1;
+        }
+
+        .toggle-password:hover {
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.08);
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #64748b;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #3b82f6;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.45);
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .error-message {
+            margin-top: 16px;
+            padding: 14px 16px;
+            background: rgba(254, 242, 242, 0.95);
+            color: #dc2626;
+            border-radius: 10px;
+            font-size: 14px;
+            border-left: 4px solid #dc2626;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            padding-top: 24px;
+            margin-top: 24px;
+            border-top: 1px solid rgba(226, 232, 240, 0.6);
+        }
+
+        .footer p {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .footer a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease;
+        }
+
+        .footer a:hover {
+            color: #1d4ed8;
+        }
+
+        @media (max-width: 480px) {
+            .login-box {
+                padding: 36px 28px;
+                border-radius: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .logo {
+                width: 64px;
+                height: 64px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gradient-canvas"></canvas>
+    <canvas id="wave-canvas"></canvas>
+
+    <div class="container">
+        <div class="login-box">
+            <div class="logo-section">
+                <div class="logo">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 4L34 12V28L20 36L6 28V12L20 4Z"
+                              stroke="white"
+                              stroke-width="2"
+                              fill="none"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                        <circle cx="20" cy="20" r="6" fill="white" opacity="0.9"/>
+                        <circle cx="20" cy="20" r="3" fill="white"/>
+                    </svg>
+                </div>
+                <h1>欢迎回来</h1>
+                <p class="subtitle">登录以继续使用 DeepSeek Harness</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 10a4 4 0 100-8 4 4 0 000 8zM3 18a7 7 0 0114 0H3z"/>
+                        </svg>
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            placeholder="请输入用户名"
+                            required
+                            autocomplete="username"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2z"/>
+                        </svg>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="请输入密码"
+                            required
+                            autocomplete="current-password"
+                        >
+                        <button type="button" class="toggle-password" aria-label="显示/隐藏密码">
+                            <svg class="eye-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="remember">
+                        <span>记住我</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <div class="btn-content">
+                        <span class="btn-text">登录</span>
+                    </div>
+                </button>
+
+                <div class="error-message" id="errorMessage" style="display: none;">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <span id="errorText"></span>
+                </div>
+            </form>
+
+            <div class="footer">
+                <p>Powered by <a href="https://github.com/deepseek-ai/dsh" target="_blank">DeepSeek Harness</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // 流动渐变背景 (使用多个圆形渐变代替 Simplex Noise)
+        const gradientCanvas = document.getElementById('gradient-canvas');
+        const gradientCtx = gradientCanvas.getContext('2d');
+
+        gradientCanvas.width = window.innerWidth;
+        gradientCanvas.height = window.innerHeight;
+
+        let time = 0;
+
+        class Blob {
+            constructor() {
+                this.x = Math.random() * gradientCanvas.width;
+                this.y = Math.random() * gradientCanvas.height;
+                this.radius = Math.random() * 300 + 200;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.hue = Math.random() * 30 + 200; // 蓝色范围
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < -this.radius || this.x > gradientCanvas.width + this.radius) this.vx *= -1;
+                if (this.y < -this.radius || this.y > gradientCanvas.height + this.radius) this.vy *= -1;
+            }
+        }
+
+        const blobs = [];
+        for (let i = 0; i < 5; i++) {
+            blobs.push(new Blob());
+        }
+
+        function drawGradient() {
+            // 基础背景
+            const bgGradient = gradientCtx.createLinearGradient(0, 0, gradientCanvas.width, gradientCanvas.height);
+            bgGradient.addColorStop(0, '#f0f9ff');
+            bgGradient.addColorStop(1, '#e0f2fe');
+            gradientCtx.fillStyle = bgGradient;
+            gradientCtx.fillRect(0, 0, gradientCanvas.width, gradientCanvas.height);
+
+            // 绘制流动的光晕
+            blobs.forEach((blob, i) => {
+                blob.update();
+
+                const gradient = gradientCtx.createRadialGradient(
+                    blob.x, blob.y, 0,
+                    blob.x, blob.y, blob.radius
+                );
+
+                const alpha = 0.15 + Math.sin(time + i) * 0.05;
+                gradient.addColorStop(0, `hsla(${blob.hue}, 70%, 70%, ${alpha})`);
+                gradient.addColorStop(0.5, `hsla(${blob.hue}, 65%, 65%, ${alpha * 0.5})`);
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                gradientCtx.fillStyle = gradient;
+                gradientCtx.fillRect(0, 0, gradientCanvas.width, gradientCanvas.height);
+            });
+        }
+
+        // 波浪效果
+        const waveCanvas = document.getElementById('wave-canvas');
+        const waveCtx = waveCanvas.getContext('2d');
+
+        waveCanvas.width = window.innerWidth;
+        waveCanvas.height = window.innerHeight;
+
+        class Wave {
+            constructor(y, speed, amplitude, frequency, color) {
+                this.y = y;
+                this.speed = speed;
+                this.amplitude = amplitude;
+                this.frequency = frequency;
+                this.color = color;
+                this.offset = 0;
+            }
+
+            draw() {
+                waveCtx.beginPath();
+                waveCtx.moveTo(0, waveCanvas.height);
+
+                for (let x = 0; x < waveCanvas.width; x++) {
+                    const y = this.y + Math.sin((x * this.frequency + this.offset)) * this.amplitude;
+                    waveCtx.lineTo(x, y);
+                }
+
+                waveCtx.lineTo(waveCanvas.width, waveCanvas.height);
+                waveCtx.closePath();
+                waveCtx.fillStyle = this.color;
+                waveCtx.fill();
+
+                this.offset += this.speed;
+            }
+        }
+
+        const waves = [
+            new Wave(waveCanvas.height * 0.7, 0.01, 30, 0.01, 'rgba(59, 130, 246, 0.08)'),
+            new Wave(waveCanvas.height * 0.75, 0.015, 25, 0.012, 'rgba(6, 182, 212, 0.06)'),
+            new Wave(waveCanvas.height * 0.8, 0.008, 20, 0.015, 'rgba(139, 92, 246, 0.04)'),
+        ];
+
+        function animate() {
+            time += 0.002;
+            drawGradient();
+
+            waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+            waves.forEach(wave => wave.draw());
+
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', () => {
+            gradientCanvas.width = window.innerWidth;
+            gradientCanvas.height = window.innerHeight;
+            waveCanvas.width = window.innerWidth;
+            waveCanvas.height = window.innerHeight;
+        });
+
+        animate();
+
+        // 密码显示/隐藏
+        document.querySelector('.toggle-password').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+
+            this.querySelector('.eye-icon').innerHTML = isPassword ?
+                '<path d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/>' :
+                '<path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>';
+        });
+    </script>
+</body>
+</html>

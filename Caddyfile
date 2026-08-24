@@ -1,0 +1,14 @@
+# Trusted HTTPS hostname alias for the current IP-only deployment. nip.io
+# resolves this hostname to the server IP, allowing Caddy/Let's Encrypt to
+# issue a publicly trusted certificate without editing client hosts files.
+47.82.119.154.nip.io, 47-82-119-154.sslip.io {
+  reverse_proxy 127.0.0.1:3080 {
+    header_up Host 127.0.0.1:3080
+    header_up -Origin
+  }
+}
+
+# Keep the bare-IP HTTP entry usable and send it to the trusted hostname.
+http://47.82.119.154 {
+  redir https://47.82.119.154.nip.io{uri} permanent
+}

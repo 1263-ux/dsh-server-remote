@@ -1,0 +1,5 @@
+# dsh-remote-auth bundle patch: inserts the authentication plugin.
+
+- insert:
+    - id: dsh-remote-auth
+      name: "dsh-remote-auth"

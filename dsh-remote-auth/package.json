@@ -1,0 +1,44 @@
+{
+  "name": "dsh-remote-auth",
+  "version": "0.1.0",
+  "description": "Modern authentication plugin for DeepSeek Harness with custom UI",
+  "type": "module",
+  "main": "lib/index.js",
+  "bin": {
+    "dsh-remote-auth": "cli/index.js"
+  },
+  "scripts": {
+    "build": "echo 'No build step required'",
+    "test": "echo 'No tests yet'"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek",
+    "authentication",
+    "auth",
+    "login",
+    "security"
+  ],
+  "author": "Your Team",
+  "license": "MIT",
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-invariants": "^0.1.0-rc.7"
+  },
+  "dependencies": {
+    "argon2": "^0.31.0",
+    "commander": "^11.1.0",
+    "cookie": "^0.6.0",
+    "nanoid": "^5.0.0"
+  },
+  "dsh": {
+    "bundle": true
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/dsh-remote-auth.git"
+  }
+}

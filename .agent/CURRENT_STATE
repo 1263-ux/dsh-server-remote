@@ -1,1 +1,1 @@
-DAY 0：已取得 dsh-auth-gate@0.7.2 npm tarball 并完成静态源码审计；DSH latest 已确认 rc.7，现有 PoC 3 项回归通过。rc.6→rc.7 兼容性、git commit、Linux/Caddy E2E 仍未验证；WSL/Docker 当前不可用。下一步需在可访问 Linux 环境执行方案 A。
+2026-08-24：进入“团队账号来源简化”设计阶段。目标是只控制谁可以登录，不引入复杂 RBAC。已完成飞书多维表格官方接口研究：服务器可用企业自建应用的 tenant_access_token 读取账号记录；下一步是确定字段、短缓存和 dsh-auth-gate 接入方式。当前不改线上账号、不写入任何真实飞书凭据。

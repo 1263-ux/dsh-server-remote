@@ -15,7 +15,7 @@
 - Confirm the candidate is an internal DSH plugin and that it actually mounts in the selected web profile; do not infer this from the package name.
 - Keep the current Node PoC until this gate passes.
 - GO only when source/package access, license, install shape, DSH compatibility, anonymous HTTP/API/dual-WS rejection, and authenticated core smoke tests all pass.
-- Because `dsh-auth-gate@0.7.2` declares the rc.6 dependency line while production is pinned to DSH rc.7, rc.7 compatibility is an explicit blocker, not an assumption.
+- Because `dsh-auth-gate@0.7.2` declares the rc.6 dependency line while production is running DSH rc.8, rc.8 compatibility remains an explicit risk; the remote smoke tests below are the current evidence, not a substitute for upstream release compatibility.
 - The npm tarball shasum/integrity is the immutable package identity until a git commit is independently resolved.
 - NO-GO when any of those gates fails. Investigate `dsh-plugin-remote` only as a fallback after a concrete A failure; do not run a parallel feature comparison by default.
 
@@ -59,3 +59,42 @@ The single release checklist is:
 10. Three real members complete a trial, including one continuous hour without a severe failure.
 
 A V1 release is GO only when all ten items pass; otherwise record the blocker and remain pre-release.
+
+## Phase 2: Minimal team login directory (design only, 2026-08-24)
+
+### Goal
+
+Use one Feishu Bitable table as the administrator-maintained login directory for DSH. The scope is only login allow/deny; it does not attempt per-user Linux, DSH, model, or OKS permissions.
+
+### Proposed design
+
+- Keep `dsh-auth-gate` as the browser-facing login/session layer.
+- Add a small server-side account adapter that reads one configured Bitable table through a Feishu enterprise app and `tenant_access_token`.
+- Cache the normalized account list locally for 60 seconds to avoid a Feishu API call on every password attempt or page/API request.
+- Store only `username`, `password_hash`, `enabled`, `display_name`, and optional `note` fields. Never store plaintext passwords in Feishu.
+- Verify passwords locally with Argon2id or bcrypt; issue the existing Secure/HttpOnly session cookie after success.
+- On sync failure, keep the last known cache for a short bounded grace period, then fail closed for new logins. Existing sessions are not forcibly revoked until a later explicit revocation mechanism is added.
+
+### Minimal Bitable fields
+
+`账号` · `密码哈希` · `启用` · `显示名` · `备注`
+
+### Non-goals
+
+- No Feishu OAuth login.
+- No per-user DSH capability or Linux UID mapping.
+- No role matrix, approval workflow, audit database, or permission inheritance.
+- No Feishu API call on every DSH API/WebSocket event.
+
+### Acceptance
+
+1. An enabled row can log in through both public aliases.
+2. A disabled row cannot start a new session after the cache refresh window.
+3. Existing DSH API/WebSocket authentication behavior remains unchanged.
+4. Feishu app credentials are root-owned and never exposed to the browser or Agent prompt.
+5. Plaintext passwords never appear in the table, logs, result artifacts, or error messages.
+6. If Feishu is unavailable, the service exposes a clear health status and does not silently allow unknown accounts.
+
+### Owner gate before implementation
+
+The Owner must provide or approve the Feishu enterprise app, Bitable app token, table ID, and the exact administrator workflow for generating password hashes. Implementation should not begin until those values are supplied through a secure channel; they must not be pasted into source files or chat.

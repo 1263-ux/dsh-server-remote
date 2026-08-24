@@ -1,5 +1,5 @@
 {
-  "name": "dsh-remote-gateway-poc",
+  "name": "dsh-server-remote",
   "version": "0.1.0",
   "private": true,
   "type": "module",
